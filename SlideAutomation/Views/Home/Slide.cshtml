@@ -44,12 +44,12 @@
                 <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
                     <div class="carousel-inner">
                         <div class="carousel-item active">
-                            <img src="@ViewBag.Slides[0]" class="rounded mx-auto d-block img-thumbnail">
+                            <img src="@Url.Content(ViewBag.Slides[0])" class="rounded mx-auto d-block img-thumbnail">
                         </div>
                         @for (var i = 1; i < ViewBag.Slides.Count; i++)
                         {
                         <div class="carousel-item">
-                            <img src="@ViewBag.Slides[i]" class="rounded mx-auto d-block img-thumbnail">
+                            <img src="@Url.Content(ViewBag.Slides[i])" class="rounded mx-auto d-block img-thumbnail">
                         </div>
                         }
                         
