@@ -20,12 +20,20 @@ namespace SlideAutomation.Controllers
         [HttpPost]
         public RedirectResult Index(IEnumerable<HttpPostedFileBase> upload)
         {
+
+            var presentationId = GetPresentationId();
+            var presentationDir = Server.MapPath("~/Presentations/" + presentationId);
+            CreatePresentationDir(presentationDir);
+
+
+
             var textsFile = upload.ToArray()[0];
             var backgroundsFile = upload.ToArray()[1];
+
             if (textsFile != null)
                 {
                     var fileName = Path.GetFileName(textsFile.FileName);
-                    var filePath = Server.MapPath("~/Files/" + fileName);
+                    var filePath = presentationDir + "/" + fileName;
                     textsFile.SaveAs(filePath);    
                     if (fileName.Contains(".txt"))    
                         {
@@ -43,8 +51,20 @@ namespace SlideAutomation.Controllers
                             }
                             CreateSlides(slides);
                         }        
-                    }       
-            return Redirect("/Home/Slide/0");
+                    }
+            
+            return Redirect("/Home/Slide/" + int.Parse(presentationId) + "/0");
+            //return Redirect("/Home/Slide/");
+        }
+
+        private void CreatePresentationDir(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(path + "/Backgrounds");
+                Directory.CreateDirectory(path + "/Slides");
+            }
         }
 
         private string GetRandomBackground()
@@ -53,15 +73,30 @@ namespace SlideAutomation.Controllers
             return BackgroundPaths[new Random().Next(BackgroundPaths.Length)];
         }
 
+        private string GetPresentationId()
+        {
+            var dateId = DateTime.Now.ToString();
+            string[] charsToRemove = { ".", " ", ":" };
+            foreach (var symbol in charsToRemove)
+            {
+                dateId = dateId.Replace(symbol, "");
+            }
+            return dateId;
+        }
+
+
+
        
-        [HttpGet]
-        public ActionResult Slide(int id)
+       [HttpGet]
+        public ActionResult Slide(int id, string name)
         {
             var slidePaths = Directory.GetFiles(Server.MapPath("~/Home/Slide/Slides/"));
             var slides = slidePaths.Select(path => "Slides/" + Path.GetFileName(path)).ToList();
             ViewBag.Slides = slides;
             return View();
         }
+
+       
 
         private void CreateSlides(List<Slide> slides)
         {
