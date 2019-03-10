@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using SlideAutomation.Models;
 
 namespace SlideAutomation.Controllers
@@ -29,7 +26,8 @@ namespace SlideAutomation.Controllers
             float offsetY = 0;
             float textStartPosX = 100;
             float textStartPosY = 150;
-            var words = slide.Content.Split(' ');
+            var words = slide.Content
+                .Split(new string[] { " ", "\r" }, StringSplitOptions.RemoveEmptyEntries);
             words[0] = words[0].Replace("\n", " ");
             var wordStyle = new WordStyle(new Font("Arial", fontSize, FontStyle.Regular),
                 new SolidBrush(Color.WhiteSmoke));
@@ -42,6 +40,11 @@ namespace SlideAutomation.Controllers
                     word = words[i].Remove(0, words[i].IndexOf(']') + 1);
                 }
                 word = word.Replace("$]", "");
+                if (word.Contains('\n')) {
+                    word = word.Replace("\n", "");
+                    offsetX = 0;
+                    offsetY += fontSize * 1.5F;
+                }
                 var wordPosition = new RectangleF(textStartPosX + offsetX, textStartPosY + offsetY, 800, 50);
                 var part2 = Graphics.FromImage(pictureToOurFormat);
                 part2.DrawString(word,
@@ -95,7 +98,6 @@ namespace SlideAutomation.Controllers
                 if (styleTags.Contains("underline")) style = style | FontStyle.Underline;
                 var color = new SolidBrush(System.Drawing.Color.WhiteSmoke);
                 return new WordStyle(new Font("Arial", fontSize, style), color);
-
             }
         }
     }
