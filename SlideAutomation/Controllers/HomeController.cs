@@ -22,7 +22,6 @@ namespace SlideAutomation.Controllers
         [HttpPost]
         public RedirectResult Index(IEnumerable<HttpPostedFileBase> upload)
         {
-
             var presentationId = GetPresentationId();
             var presentationDir = Server.MapPath("~/Presentations/" + presentationId);
             CreatePresentationDir(presentationDir);
@@ -105,10 +104,7 @@ namespace SlideAutomation.Controllers
             return dateId;
         }
 
-
-
-       
-       [HttpGet]
+        [HttpGet]
         public ActionResult Slide(int id, string name)
         {
             var slidePaths = Directory.GetFiles(Server.MapPath("~/Presentations/" + name + "/Slides")).ToList();
@@ -118,20 +114,11 @@ namespace SlideAutomation.Controllers
             return View();
         }
 
-       
-
         private void SaveSlides(List<Slide> slides, string presentationDir)
         {
             for (var i = 0; i<slides.Count;i++)
             {
-                Image picture = Image.FromFile(slides[i].PathToBackgroundFile);  
-                var pictureToOurFormat = new Bitmap(picture, 800, 500); 
-                Graphics part2 = Graphics.FromImage(pictureToOurFormat); 
-                part2.DrawString(slides[i].Content,
-                new Font("Arial", 26, FontStyle.Regular),
-                new SolidBrush(Color.WhiteSmoke), new RectangleF(100, 100, 400, 500),
-                new StringFormat(StringFormatFlags.NoClip));
-                pictureToOurFormat.Save(presentationDir + "/Slides/" + i.ToString() + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);//записываем получающееся изображение в файл
+                SlideSaver.Save(slides[i], presentationDir + "/Slides/" + i.ToString() + ".jpg");
             }
         }
 
