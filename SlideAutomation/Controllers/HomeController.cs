@@ -6,9 +6,9 @@ using System.Web.Mvc;
 using SlideAutomation.Models;
 using System.IO;
 using System.Text;
-using System.Drawing;
 using System.IO.Compression;
-
+using System.Runtime.Serialization.Json;
+using System.Runtime.Serialization;
 
 namespace SlideAutomation.Controllers
 {
@@ -17,6 +17,12 @@ namespace SlideAutomation.Controllers
         public ActionResult Index()
         {
             return View();
+        }
+
+        [HttpPost]
+        public RedirectResult Slide(string text1, string text2)
+        {
+            return Redirect("/Home/Slide/0/");
         }
 
         [HttpPost]
@@ -35,6 +41,7 @@ namespace SlideAutomation.Controllers
             {
                 CreateSlidesFromTxt(presentationDir, textsFile);
             }
+            RedirectToAction("Slide");
             return Redirect("/Home/Slide/0/" + presentationId);
         }
 
@@ -82,6 +89,7 @@ namespace SlideAutomation.Controllers
                 Directory.CreateDirectory(path);
                 Directory.CreateDirectory(path + "/Backgrounds");
                 Directory.CreateDirectory(path + "/Slides");
+                Directory.CreateDirectory(path + "/SlidesJSON");
             }
         }
 
@@ -107,18 +115,41 @@ namespace SlideAutomation.Controllers
         [HttpGet]
         public ActionResult Slide(int id, string name)
         {
-            var slidePaths = Directory.GetFiles(Server.MapPath("~/Presentations/" + name + "/Slides")).ToList();
+            var slidePaths = Directory.GetFiles(Server.MapPath("~/Presentations/" + name + "/Slides")).ToList(); // устарело
             var slides = slidePaths
               .Select(path => "~/Presentations/" + name + "/Slides/" + Path.GetFileName(path)).ToList();
-            ViewBag.Slides = slides;
+            if (id >= slides.Count) id = id - 1;
+            if (id < 0) id = 0;
+            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
+            var jsonPath = Server.MapPath("~/Presentations/" + name + "/SlidesJSON/" + id.ToString() + ".json");
+            using (FileStream fs = new FileStream(jsonPath, FileMode.OpenOrCreate))
+            {
+                Slide slide = (Slide)jsonFormatter.ReadObject(fs);
+                ViewBag.SlideText = slide.Content;
+                ViewBag.SlideTitle = slide.Title;
+                ViewBag.BackgroundPath = slide.PathToBackgroundFile;
+            }
+            ViewBag.JpgPath = slidePaths[id];
+            ViewBag.JsonPath = jsonPath;
+            ViewBag.Id = id;
+            ViewBag.Name = name;
+
+            ViewBag.SlidePath = slides[id];
+            ViewBag.NextSlide = "~/Home/Slide/" + (id + 1).ToString() + "/" + name;
+            ViewBag.PreviousSlide = "~/Home/Slide/" + (id - 1).ToString() + "/" + name;
             return View();
         }
-
+        
         private void SaveSlides(List<Slide> slides, string presentationDir)
         {
+            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
             for (var i = 0; i<slides.Count;i++)
             {
                 SlideSaver.Save(slides[i], presentationDir + "/Slides/" + i.ToString() + ".jpg");
+                using (FileStream fs = new FileStream(presentationDir + "/SlidesJSON/" + i.ToString() + ".json", FileMode.OpenOrCreate))
+                {
+                    jsonFormatter.WriteObject(fs, slides[i]);
+                }
             }
         }
 
