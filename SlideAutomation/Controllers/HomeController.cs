@@ -20,9 +20,19 @@ namespace SlideAutomation.Controllers
         }
 
         [HttpPost]
-        public RedirectResult Slide(string text1, string text2)
+        public RedirectResult Slide(string slideText, string slideTitle, string slideBg, string slideDir, string slideId, string slideName)
         {
-            return Redirect("/Home/Slide/0/");
+            var modifiedSlide = new Slide();
+            modifiedSlide.Title = slideTitle;
+            modifiedSlide.Content = slideText;
+            modifiedSlide.PathToBackgroundFile = slideBg;
+            SlideSaver.Save(modifiedSlide, slideDir + "/Slides/" + slideId + ".jpg");
+            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
+            using (FileStream fs = new FileStream(slideDir + "/SlidesJSON/" + slideId + ".json", FileMode.Create))
+            {
+                jsonFormatter.WriteObject(fs, modifiedSlide);
+            }
+            return Redirect("/Home/Slide/" + slideId + "/" + slideName);
         }
 
         [HttpPost]
@@ -129,11 +139,9 @@ namespace SlideAutomation.Controllers
                 ViewBag.SlideTitle = slide.Title;
                 ViewBag.BackgroundPath = slide.PathToBackgroundFile;
             }
-            ViewBag.JpgPath = slidePaths[id];
-            ViewBag.JsonPath = jsonPath;
-            ViewBag.Id = id;
-            ViewBag.Name = name;
-
+            ViewBag.presDir = Server.MapPath("~/Presentations/" + name);
+            ViewBag.SlideId = id;
+            ViewBag.SlideName = name;
             ViewBag.SlidePath = slides[id];
             ViewBag.NextSlide = "~/Home/Slide/" + (id + 1).ToString() + "/" + name;
             ViewBag.PreviousSlide = "~/Home/Slide/" + (id - 1).ToString() + "/" + name;

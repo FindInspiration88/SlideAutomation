@@ -1,23 +1,6 @@
-﻿@using System.Runtime.Serialization.Json;
-@using SlideAutomation.Controllers;
-@using SlideAutomation.Models;
-
+﻿
 @{
-    var lol = "";
-    if (IsPost)
-    {
-        var modifiedSlide = new Slide();
-        modifiedSlide.Title = ViewBag.SlideTitle;
-        modifiedSlide.Content = ViewBag.SlideText;
-        modifiedSlide.PathToBackgroundFile = ViewBag.BackgroundPath;
-        SlideSaver.Save(modifiedSlide, ViewBag.JpgPath);
-        DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
-        using (FileStream fs = new FileStream(ViewBag.JsonPath, FileMode.OpenOrCreate))
-        {
-            jsonFormatter.WriteObject(fs, modifiedSlide);
-        }
-        Response.Redirect("~/Home/Slide/" + ViewBag.Id + "/" + ViewBag.Name);
-    }
+    Layout = null;
 }
 <!DOCTYPE html>
 <html>
@@ -53,12 +36,16 @@
         <div class="row">
             <div class="col-lg-4">
                 <div class="container-fluid" style="background-color: #F8F8FF">
-                    <form action="/" method="POST" enctype="multipart/form-data">
+                    <form method="POST">
                         <div class="form-group">
-                            <label for="slide-title">Заголовок слайда</label>
-                            <textarea class="form-control" rows="1" id="slide-title">@ViewBag.SlideTitle</textarea>
-                            <label for="slide-text">Текст слайда</label>
-                            <textarea class="form-control" rows="5" id="slide-text">@ViewBag.SlideText</textarea>
+                            <label for="slideTitle">Заголовок слайда</label>
+                            <textarea class="form-control" rows="1" id="slideTitle" name="slideTitle">@ViewBag.SlideTitle</textarea>
+                            <label for="slideText">Текст слайда</label>
+                            <textarea class="form-control" rows="5" id="slideText" name="slideText">@ViewBag.SlideText</textarea>
+                            <textarea class="d-none" rows="1" name="slideDir">@ViewBag.presDir</textarea>
+                            <textarea class="d-none" rows="1" name="slideBg">@ViewBag.BackgroundPath</textarea>
+                            <textarea class="d-none" rows="1" name="slideId">@ViewBag.SlideId</textarea>
+                            <textarea class="d-none" rows="1" name="slideName">@ViewBag.SlideName</textarea>
                             <button type="submit" class="btn btn-success text-center my-4 mx-auto">Сохранить изменения!</button>
                             
                         </div>
