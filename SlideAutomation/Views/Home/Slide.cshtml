@@ -47,9 +47,11 @@
                             <textarea class="d-none" rows="1" name="slideId">@ViewBag.SlideId</textarea>
                             <textarea class="d-none" rows="1" name="slideName">@ViewBag.SlideName</textarea>
                             <button type="submit" class="btn btn-success text-center my-4 mx-auto">Сохранить изменения!</button>
+                            <a class="btn btn-primary" href="@Url.Content(ViewBag.DownloadLink)" role="button" download>Скачать презентацию</a>
                             <h5 class="my-4 mt-5">@ViewBag.Warning</h5>
                         </div>
                     </form>
+
                     <div class="block p-b-2">
                         <div class="float-right">
                             <a class="btn btn-secondary" href="@Url.Content(ViewBag.NextSlide)" role="button">Следующий слайд</a>
@@ -58,7 +60,10 @@
                         <div class="float-left">
                             <a class="btn btn-secondary" href="@Url.Content(ViewBag.PreviousSlide)" role="button">Предыдущий слайд</a>
                         </div>
+
+                        
                     </div>
+                    
                     
 
         </div>
