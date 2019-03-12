@@ -19,6 +19,12 @@ namespace SlideAutomation.Controllers
             return View();
         }
 
+        [HttpGet]
+        public ActionResult Error()
+        {
+            return View();
+        }
+
         [HttpPost]
         public RedirectResult Slide(string slideText, string slideTitle, string slideBg, string slideDir, string slideId, string slideName)
         {
@@ -43,42 +49,58 @@ namespace SlideAutomation.Controllers
             CreatePresentationDir(presentationDir);
             var textsFile = upload.ToArray()[0];
             var backgroundsFile = upload.ToArray()[1];
-            if (backgroundsFile != null && backgroundsFile.FileName.Contains(".zip"))
+            if (backgroundsFile == null 
+                || !backgroundsFile.FileName.Contains(".zip") 
+                || !IsBackgroundsExtracted(presentationDir, backgroundsFile))
+                {
+                    LoadDefaultBackground(presentationDir);
+                }
+            if (textsFile != null && textsFile.FileName.Contains(".txt") && IsSlidesCreated(presentationDir, textsFile))
             {
-                ExtractBackgrounds(presentationDir, backgroundsFile);
+                return Redirect("/Home/Slide/0/" + presentationId);
             }
-            if (textsFile != null && textsFile.FileName.Contains(".txt"))
-            {
-                CreateSlidesFromTxt(presentationDir, textsFile);
-            }
-            RedirectToAction("Slide");
-            return Redirect("/Home/Slide/0/" + presentationId);
+            return Redirect("/Home/Error");
         }
 
-        private void ExtractBackgrounds(string presentationDir, HttpPostedFileBase backgroundsFile)
+        private void LoadDefaultBackground(string presentationDir)
+        {
+            System.IO.File.Copy(Server.MapPath("~/Files/Backgrounds/default.jpg"), presentationDir + "/Backgrounds/default.jpg");
+        }
+
+
+        private bool IsBackgroundsExtracted(string presentationDir, HttpPostedFileBase backgroundsFile)
         {
             var fileName = Path.GetFileName(backgroundsFile.FileName);
             var filePath = presentationDir + "/" + fileName;
             backgroundsFile.SaveAs(filePath);
-           try
-           {
+            try
+            {
                 ZipFile.ExtractToDirectory(filePath, presentationDir + "/Backgrounds");
-           }
-           catch (Exception e)
-           {
-                System.IO.File.Copy(Server.MapPath("~/Files/default.jpg"), presentationDir + "/Backgrounds/default.jpg");
-           }
+                if (Directory.GetFiles(presentationDir + "/Backgrounds")
+                    .Where(path => path.Contains(".png") || path.Contains(".jpg")).Count() == 0)
+                {
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
 
         }
 
-        private void CreateSlidesFromTxt(string presentationDir, HttpPostedFileBase textsFile)
+        private bool IsSlidesCreated(string presentationDir, HttpPostedFileBase textsFile)
         {
             
             var fileName = Path.GetFileName(textsFile.FileName);
             var filePath = presentationDir + "/" + fileName;
             textsFile.SaveAs(filePath);
             StreamReader fileStream = new StreamReader(filePath, Encoding.Default);
-            var slideTexts = fileStream.ReadToEnd()
+            var fileText = fileStream.ReadToEnd();
+            if (!fileText.Contains("СЛАЙД"))
+                return false;
+            var slideTexts = fileText
                 .Split(new string[] { "СЛАЙД: ", "СЛАЙД:" }, StringSplitOptions.RemoveEmptyEntries);
             var slides = new List<Slide>();
             foreach (var slideText in slideTexts)
@@ -90,6 +112,7 @@ namespace SlideAutomation.Controllers
                 slides.Add(slide);
             }
             SaveSlides(slides, presentationDir);
+            return true;
         }
 
         private void CreatePresentationDir(string path)
@@ -138,6 +161,8 @@ namespace SlideAutomation.Controllers
                 ViewBag.SlideText = slide.Content;
                 ViewBag.SlideTitle = slide.Title;
                 ViewBag.BackgroundPath = slide.PathToBackgroundFile;
+                ViewBag.Warning = (slide.PathToBackgroundFile.Contains("default.jpg")) ?
+                    "Был загружен стандартный фон, так как архив не был прочитан." : "";
             }
             ViewBag.presDir = Server.MapPath("~/Presentations/" + name);
             ViewBag.SlideId = id;

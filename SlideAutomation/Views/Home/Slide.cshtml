@@ -24,7 +24,7 @@
                     <a class="nav-link" href="#">Инструкция</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Главная</a>
+                    <a class="nav-link" href="@Url.Content("~/")">Главная</a>
                 </li>
 
             </ul>
@@ -47,7 +47,7 @@
                             <textarea class="d-none" rows="1" name="slideId">@ViewBag.SlideId</textarea>
                             <textarea class="d-none" rows="1" name="slideName">@ViewBag.SlideName</textarea>
                             <button type="submit" class="btn btn-success text-center my-4 mx-auto">Сохранить изменения!</button>
-                            
+                            <h5 class="my-4 mt-5">@ViewBag.Warning</h5>
                         </div>
                     </form>
                     <div class="block p-b-2">
