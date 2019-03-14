@@ -11,7 +11,7 @@
     <title>Слайд</title>
     <style>
         .brd {
-            padding: 10px; /* Поля вокруг текста */
+            padding: 2px; /* Поля вокруг текста */
         }
     </style>
 </head>
@@ -52,19 +52,26 @@
                         </div>
                     </form>
 
-                    <div class="block p-b-2">
-                        <div class="float-right">
-                            <a class="btn btn-secondary" href="@Url.Content(ViewBag.NextSlide)" role="button">Следующий слайд</a>
+                <div class="container-fluid">
+                     <div class="row">
+                       <div class="brd">
+                            <a class="btn btn-secondary " href="@Url.Content(ViewBag.NextSlide)" role="button">Следующий  слайд</a>
+                       </div>
+
+
+
+
+                       <div class="brd">
+                            <a class="btn btn-secondary " href="@Url.Content(ViewBag.PreviousSlide)" role="button">Предыдущий слайд</a>
                         </div>
 
-                        <div class="float-left">
-                            <a class="btn btn-secondary" href="@Url.Content(ViewBag.PreviousSlide)" role="button">Предыдущий слайд</a>
-                        </div>
 
-                        
-                    </div>
-                    
-                    
+
+                     </div>
+                 </div>
+
+
+
 
         </div>
             </div>
