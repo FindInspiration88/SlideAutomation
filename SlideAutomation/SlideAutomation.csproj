@@ -24,6 +24,7 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -154,7 +155,7 @@
     </Content>
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\Slide_old.cshtml" />
-    <Content Include="Views\Home\Slide.cshtml" />
+    <Content Include="Views\Home\GetSlideEditorView.cshtml" />
     <Content Include="Views\Home\Error.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
