@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace SlideAutomation.Controllers.WordStyles
+namespace SlideAutomation.Controllers.Fonts
 {
     public static class WordStyles
     {

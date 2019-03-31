@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace SlideAutomation.Controllers.WordStyles
+namespace SlideAutomation.Controllers.Fonts
 {
 
     public class WordStyle

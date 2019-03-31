@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
-using SlideAutomation.Controllers.WordStyles;
+using SlideAutomation.Controllers.Fonts;
 using SlideAutomation.Models;
 
 namespace SlideAutomation.Controllers
@@ -20,15 +20,15 @@ namespace SlideAutomation.Controllers
 
         private static void PlaceTextOnPicture(Slide slide, Bitmap resizedBackground)
         {
-            var offset = new Offset(100, 150, WordStyles.WordStyles.CommonFontSize,400);
+            var offset = new Offset(100, 150, WordStyles.CommonFontSize,400);
             var words = ExtractWordsFromText(slide);
-            var wordStyle = WordStyles.WordStyles.CommonTextStyle;
+            var wordStyle = WordStyles.CommonTextStyle;
             for (var i = 0; i < words.Length; i++)
             {
                 var word = words[i];
                 if (words[i].Contains("[$"))
                 {
-                    wordStyle = WordStyles.WordStyles.GetWordStyle(words[i], WordStyles.WordStyles.CommonFontSize);
+                    wordStyle = WordStyles.GetWordStyle(words[i], WordStyles.CommonFontSize);
                     word = words[i].Remove(0, words[i].IndexOf(']') + 1);
                 }
                 word = word.Replace("$]", "");
@@ -39,7 +39,7 @@ namespace SlideAutomation.Controllers
                 }
                              
                 DrawWord(resizedBackground, word, wordStyle, offset);
-                if (words[i].Contains("$]")) wordStyle = WordStyles.WordStyles.CommonTextStyle;
+                if (words[i].Contains("$]")) wordStyle = WordStyles.CommonTextStyle;
                 offset.TryMakeNewLine();
             }
         }
@@ -73,7 +73,7 @@ namespace SlideAutomation.Controllers
         private static void PlaceTitleOnPicture(Slide slide, Bitmap resizedBackground)
         {
             var titleText = slide.Title;
-            var titleStyle = WordStyles.WordStyles.TitleStyle;
+            var titleStyle = WordStyles.TitleStyle;
             var titleGraphic = Graphics.FromImage(resizedBackground);
             var titlePosition = GetTitleTextPosition(titleGraphic, titleText, titleStyle);
 
