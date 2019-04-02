@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using SlideAutomation.Models;
 using System.IO;
-using System.Text;
-using System.IO.Compression;
 using System.Runtime.Serialization.Json;
-using System.Runtime.Serialization;
 
 namespace SlideAutomation.Controllers
 {
@@ -28,22 +24,32 @@ namespace SlideAutomation.Controllers
         [HttpGet]
         public ActionResult Slide(int id, string name)
         {
-            var slidePaths = Directory.GetFiles(Server.MapPath("~/Presentations/" + name + "/Slides")).ToList(); // устарело
-            var slides = slidePaths
-              .Select(path => "~/Presentations/" + name + "/Slides/" + Path.GetFileName(path)).ToList();
-            if (id >= slides.Count) id = id - 1;
-            if (id < 0) id = 0;
-            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
+            var slidePaths = GetPresentationPaths(name); // устарело
+            var slides = GetSlidesPaths(name, slidePaths);
+            id = CheckIdValidity(id, slides);
+            LoadSlideViewFromJson(id, name, slides);
+            return View();
+        }
+
+        private void LoadSlideViewFromJson(int id, string name, List<string> slides)
+        {
             var jsonPath = Server.MapPath("~/Presentations/" + name + "/SlidesJSON/" + id.ToString() + ".json");
             using (FileStream fs = new FileStream(jsonPath, FileMode.OpenOrCreate))
             {
+                DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
                 Slide slide = (Slide)jsonFormatter.ReadObject(fs);
-                ViewBag.SlideText = slide.Text;
-                ViewBag.SlideTitle = slide.Title;
-                ViewBag.BackgroundPath = slide.PathToBackgroundPicture;
-                ViewBag.Warning = (slide.PathToBackgroundPicture.Contains("default.jpg")) ?
-                    "Был загружен стандартный фон, так как архив не был прочитан." : "";
+                FillViewBagWithSlide(id, name, slide, slides);
             }
+        }
+
+        private void FillViewBagWithSlide(int id, string name, Slide slide, List<string> slides)
+        {
+            ViewBag.SlideText = slide.Text;
+            ViewBag.SlideTitle = slide.Title;
+            ViewBag.BackgroundPath = slide.PathToBackgroundPicture;
+            ViewBag.Warning = (slide.PathToBackgroundPicture.Contains("default.jpg"))
+                ? "Был загружен стандартный фон, так как архив не был прочитан."
+                : "";
             ViewBag.presDir = Server.MapPath("~/Presentations/" + name);
             ViewBag.SlideId = id;
             ViewBag.SlideName = name;
@@ -51,8 +57,26 @@ namespace SlideAutomation.Controllers
             ViewBag.NextSlide = "~/Home/Slide/" + (id + 1).ToString() + "/" + name;
             ViewBag.PreviousSlide = "~/Home/Slide/" + (id - 1).ToString() + "/" + name;
             ViewBag.DownloadLink = "~/Presentations/" + name + "/Slides.zip";
-            return View();
         }
+
+        private static int CheckIdValidity(int id, List<string> slides)
+        {
+            if (id >= slides.Count) id = id - 1;
+            if (id < 0) id = 0;
+            return id;
+        }
+
+        private static List<string> GetSlidesPaths(string name, List<string> slidePaths)
+        {
+            return slidePaths
+                .Select(path => "~/Presentations/" + name + "/Slides/" + Path.GetFileName(path)).ToList();
+        }
+
+        private List<string> GetPresentationPaths(string name)
+        {
+            return Directory.GetFiles(Server.MapPath("~/Presentations/" + name + "/Slides")).ToList();
+        }
+
         [HttpPost]
         public RedirectResult Index(IEnumerable<HttpPostedFileBase> upload)
         {
