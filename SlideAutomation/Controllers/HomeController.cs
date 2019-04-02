@@ -38,10 +38,10 @@ namespace SlideAutomation.Controllers
             using (FileStream fs = new FileStream(jsonPath, FileMode.OpenOrCreate))
             {
                 Slide slide = (Slide)jsonFormatter.ReadObject(fs);
-                ViewBag.SlideText = slide.Content;
+                ViewBag.SlideText = slide.Text;
                 ViewBag.SlideTitle = slide.Title;
-                ViewBag.BackgroundPath = slide.PathToBackgroundFile;
-                ViewBag.Warning = (slide.PathToBackgroundFile.Contains("default.jpg")) ?
+                ViewBag.BackgroundPath = slide.PathToBackgroundPicture;
+                ViewBag.Warning = (slide.PathToBackgroundPicture.Contains("default.jpg")) ?
                     "Был загружен стандартный фон, так как архив не был прочитан." : "";
             }
             ViewBag.presDir = Server.MapPath("~/Presentations/" + name);
@@ -79,9 +79,9 @@ namespace SlideAutomation.Controllers
         {
             var modifiedSlide = new Slide();
             modifiedSlide.Title = slideTitle;
-            modifiedSlide.Content = slideText;
-            modifiedSlide.PathToBackgroundFile = slideBg;
-            SlideSaver.Save(modifiedSlide, slideDir + "/Slides/" + slideId + ".jpg");
+            modifiedSlide.Text = slideText;
+            modifiedSlide.PathToBackgroundPicture = slideBg;
+            SlideSaver.SaveSlideAsJpeg(modifiedSlide, slideDir + "/Slides/" + slideId + ".jpg");
             DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
             using (FileStream fs = new FileStream(slideDir + "/SlidesJSON/" + slideId + ".json", FileMode.Create))
             {
@@ -96,7 +96,7 @@ namespace SlideAutomation.Controllers
             System.IO.File.Copy(Server.MapPath("~/Files/Backgrounds/default.jpg"), presentationDir + "/Backgrounds/default.jpg");
         }
 
-        private bool IsBackgroundsExtracted(string presentationDir, HttpPostedFileBase backgroundsFile)
+        public bool IsBackgroundsExtracted(string presentationDir, HttpPostedFileBase backgroundsFile)
         {
             var fileName = Path.GetFileName(backgroundsFile.FileName);
             var filePath = presentationDir + "/" + fileName;
@@ -134,8 +134,8 @@ namespace SlideAutomation.Controllers
             {
                 var slide = new Slide();
                 slide.Title = slideText.Split('\n')[0];
-                slide.Content = slideText.Replace(slide.Title, "");
-                slide.PathToBackgroundFile = GetRandomBackground(presentationDir);
+                slide.Text = slideText.Replace(slide.Title, "");
+                slide.PathToBackgroundPicture = GetRandomBackground(presentationDir);
                 slides.Add(slide);
             }
             SaveSlides(slides, presentationDir);
@@ -177,7 +177,7 @@ namespace SlideAutomation.Controllers
             DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
             for (var i = 0; i<slides.Count;i++)
             {
-                SlideSaver.Save(slides[i], presentationDir + "/Slides/" + i.ToString() + ".jpg");
+                SlideSaver.SaveSlideAsJpeg(slides[i], presentationDir + "/Slides/" + i.ToString() + ".jpg");
                 using (FileStream fs = new FileStream(presentationDir + "/SlidesJSON/" + i.ToString() + ".json", FileMode.OpenOrCreate))
                 {
                     jsonFormatter.WriteObject(fs, slides[i]);

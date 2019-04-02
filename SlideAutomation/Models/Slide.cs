@@ -11,11 +11,11 @@ namespace SlideAutomation.Models
     public class Slide
     {
         [DataMember]
-        public string PathToBackgroundFile { get; set; }
+        public string PathToBackgroundPicture { get; set; }
         [DataMember]
         public string Title { get; set; }
         [DataMember]
-        public string Content { get; set; }
+        public string Text { get; set; }
 
     }
 }
