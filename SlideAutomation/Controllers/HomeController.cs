@@ -56,18 +56,20 @@ namespace SlideAutomation.Controllers
         [HttpPost]
         public RedirectResult Index(IEnumerable<HttpPostedFileBase> upload)
         {
-            var presentationId = GetPresentationId();
+            var presentationId = SlideProcessor.GetPresentationId();
             var presentationDir = Server.MapPath("~/Presentations/" + presentationId);
-            CreatePresentationDir(presentationDir);
+            SlideProcessor.CreatePresentationDir(presentationDir);
             var textsFile = upload.ToArray()[0];
             var backgroundsFile = upload.ToArray()[1];
-            if (backgroundsFile == null 
-                || !backgroundsFile.FileName.Contains(".zip") 
-                || !IsBackgroundsExtracted(presentationDir, backgroundsFile))
-                {
-                    LoadDefaultBackground(presentationDir);
-                }
-            if (textsFile != null && textsFile.FileName.Contains(".txt") && IsSlidesCreated(presentationDir, textsFile))
+            if (backgroundsFile == null
+                || !backgroundsFile.FileName.Contains(".zip")
+                || !SlideProcessor.IsBackgroundsExtracted(presentationDir, backgroundsFile))
+            {
+                SlideProcessor.LoadDefaultBackground(presentationDir,
+                    Server.MapPath("~/Files/Backgrounds/default.jpg"),
+                    presentationDir + "/Backgrounds/default.jpg");
+            }
+            if (textsFile != null && textsFile.FileName.Contains(".txt") && SlideProcessor.IsSlidesCreated(presentationDir, textsFile))
             {
                 return Redirect("/Home/Slide/0/" + presentationId);
             }
@@ -87,110 +89,9 @@ namespace SlideAutomation.Controllers
             {
                 jsonFormatter.WriteObject(fs, modifiedSlide);
             }
-            ArchivePresentation(slideDir);
+
+            SlideProcessor.ArchivePresentation(slideDir);
             return Redirect("/Home/Slide/" + slideId + "/" + slideName);
-        }
-
-        private void LoadDefaultBackground(string presentationDir)
-        {
-            System.IO.File.Copy(Server.MapPath("~/Files/Backgrounds/default.jpg"), presentationDir + "/Backgrounds/default.jpg");
-        }
-
-        public bool IsBackgroundsExtracted(string presentationDir, HttpPostedFileBase backgroundsFile)
-        {
-            var fileName = Path.GetFileName(backgroundsFile.FileName);
-            var filePath = presentationDir + "/" + fileName;
-            backgroundsFile.SaveAs(filePath);
-            try
-            {
-                ZipFile.ExtractToDirectory(filePath, presentationDir + "/Backgrounds");
-                if (Directory.GetFiles(presentationDir + "/Backgrounds")
-                    .Where(path => path.Contains(".png") || path.Contains(".jpg")).Count() == 0)
-                {
-                    return false;
-                }
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-            return true;
-
-        }
-
-        private bool IsSlidesCreated(string presentationDir, HttpPostedFileBase textsFile)
-        {
-            var fileName = Path.GetFileName(textsFile.FileName);
-            var filePath = presentationDir + "/" + fileName;
-            textsFile.SaveAs(filePath);
-            StreamReader fileStream = new StreamReader(filePath, Encoding.Default);
-            var fileText = fileStream.ReadToEnd();
-            if (!fileText.Contains("СЛАЙД"))
-                return false;
-            var slideTexts = fileText
-                .Split(new string[] { "СЛАЙД: ", "СЛАЙД:" }, StringSplitOptions.RemoveEmptyEntries);
-            var slides = new List<Slide>();
-            foreach (var slideText in slideTexts)
-            {
-                var slide = new Slide();
-                slide.Title = slideText.Split('\n')[0];
-                slide.Text = slideText.Replace(slide.Title, "");
-                slide.PathToBackgroundPicture = GetRandomBackground(presentationDir);
-                slides.Add(slide);
-            }
-            SaveSlides(slides, presentationDir);
-            return true;
-        }
-
-        private void CreatePresentationDir(string path)
-        {
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-                Directory.CreateDirectory(path + "/Backgrounds");
-                Directory.CreateDirectory(path + "/Slides");
-                Directory.CreateDirectory(path + "/SlidesJSON");
-            }
-        }
-
-        private string GetRandomBackground(string presentationDir)
-        {
-            var BackgroundPaths = Directory.GetFiles(presentationDir + "/Backgrounds");
-            BackgroundPaths = BackgroundPaths
-               .Where(path => path.Contains(".png") || path.Contains(".jpg")).ToArray();
-            return BackgroundPaths[new Random().Next(BackgroundPaths.Length)];
-        }
-
-        private string GetPresentationId()
-        {
-            var dateId = DateTime.Now.ToString();
-            string[] charsToRemove = { ".", " ", ":" };
-            foreach (var symbol in charsToRemove)
-            {
-                dateId = dateId.Replace(symbol, "");
-            }
-            return dateId;
-        }
-
-        private void SaveSlides(List<Slide> slides, string presentationDir)
-        {
-            DataContractJsonSerializer jsonFormatter = new DataContractJsonSerializer(typeof(Slide));
-            for (var i = 0; i<slides.Count;i++)
-            {
-                SlideSaver.SaveSlideAsJpeg(slides[i], presentationDir + "/Slides/" + i.ToString() + ".jpg");
-                using (FileStream fs = new FileStream(presentationDir + "/SlidesJSON/" + i.ToString() + ".json", FileMode.OpenOrCreate))
-                {
-                    jsonFormatter.WriteObject(fs, slides[i]);
-                }
-            }
-            ArchivePresentation(presentationDir);
-        }
-
-        private void ArchivePresentation(string presentationDir)
-        {
-            if (System.IO.File.Exists(presentationDir + "/Slides.zip"))
-                System.IO.File.Delete(presentationDir + "/Slides.zip");
-            ZipFile.CreateFromDirectory(presentationDir + "/Slides", presentationDir + "/Slides.zip");
         }
     }
 }
