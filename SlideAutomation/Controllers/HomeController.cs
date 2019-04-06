@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using SlideAutomation.Models;
 using System.IO;
+using System.Linq.Expressions;
 using System.Runtime.Serialization.Json;
+using System.Threading.Tasks;
 
 namespace SlideAutomation.Controllers
 {
@@ -24,7 +27,7 @@ namespace SlideAutomation.Controllers
         [HttpGet]
         public ActionResult Slide(int id, string name)
         {
-            var slidePaths = GetPresentationPaths(name); // устарело
+            var slidePaths = GetPresentationPaths(name);
             var slides = GetSlidesPaths(name, slidePaths);
             id = CheckIdValidity(id, slides);
             LoadSlideViewFromJson(id, name, slides);
@@ -57,6 +60,7 @@ namespace SlideAutomation.Controllers
             ViewBag.NextSlide = "~/Home/Slide/" + (id + 1).ToString() + "/" + name;
             ViewBag.PreviousSlide = "~/Home/Slide/" + (id - 1).ToString() + "/" + name;
             ViewBag.DownloadLink = "~/Presentations/" + name + "/Slides.zip";
+
         }
 
         private static int CheckIdValidity(int id, List<string> slides)
@@ -117,5 +121,7 @@ namespace SlideAutomation.Controllers
             SlideProcessor.ArchivePresentation(slideDir);
             return Redirect("/Home/Slide/" + slideId + "/" + slideName);
         }
+
+
     }
 }

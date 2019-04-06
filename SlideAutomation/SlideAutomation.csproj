@@ -138,6 +138,7 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\Offset.cs" />
+    <Compile Include="Controllers\PresentationsDeleter.cs" />
     <Compile Include="Controllers\SlideProcessor.cs" />
     <Compile Include="Controllers\WordStyles\WordStyles.cs" />
     <Compile Include="Controllers\HomeController.cs" />

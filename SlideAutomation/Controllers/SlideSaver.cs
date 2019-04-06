@@ -25,23 +25,23 @@ namespace SlideAutomation.Controllers
             var wordStyle = WordStyles.CommonTextStyle;
             for (var i = 0; i < words.Length; i++)
             {
-                var word = words[i];
-                if (words[i].Contains("[$"))
-                {
-                    wordStyle = WordStyles.GetWordStyle(words[i], WordStyles.CommonFontSize);
-                    word = words[i].Remove(0, words[i].IndexOf(']') + 1);
-                }
-                word = word.Replace("$]", "");
-                if (word.Contains('\n'))
-                {
-                    word = word.Replace("\n", "");
-                    offset.NewLine();
-                }
-                             
+                var word = words[i];               
+                word = DeleteEndLineLiteralIfIExcist(word, offset);                             
                 DrawWord(resizedBackground, word, wordStyle, offset);
                 if (words[i].Contains("$]")) wordStyle = WordStyles.CommonTextStyle;
                 offset.TryMakeNewLine();
             }
+        }
+
+        private static string DeleteEndLineLiteralIfIExcist(string word, Offset offset)
+        {
+            if (word.Contains('\n'))
+            {
+                word = word.Replace("\n", "");
+                offset.NewLine();
+            }
+
+            return word;
         }
 
         private static void DrawWord(Bitmap resizedBackground, string word, WordStyle wordStyle, Offset offset)
